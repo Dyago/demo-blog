@@ -4,10 +4,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import pe.com.bootcamp.blog.entities.Blog;
 import pe.com.bootcamp.blog.entities.Post;
+import pe.com.bootcamp.blog.exceptions.BusinessException;
 import pe.com.bootcamp.blog.repositories.BlogRepository;
 import pe.com.bootcamp.blog.repositories.PostRepository;
 import pe.com.bootcamp.blog.services.PostService;
@@ -28,15 +30,17 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public Post getById(Long id) {
-		return postRepository.findById(id).orElse(null);
+		return postRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,
+				"El codigo ingresado no se encuentra registrado"));
 	}
 
 	@Override
 	public Post save(Post post) {
-		Blog blog = blogRepository.findById(post.getBlog().getId()).get();
+		Blog blog = blogRepository.findById(post.getBlog().getId()).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,
+				"El codigo de blog ingresado no se encuentra registrado"));
 		if ("INACTIVO".equals(blog.getStatus())) {
-			System.err.println("No se puede registrar post en blog con estado INACTIVO");
-			return null;
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"No se puede registrar post en blog con estado INACTIVO");
 		} else {
 			post.setCreateDate(new Date());
 			post.setStatus("BORRADOR");
@@ -48,8 +52,8 @@ public class PostServiceImpl implements PostService {
 	@Override
 	public Post publish(Long id) {
 		if (postRepository.existsPostPublished(new Date())) {
-			System.err.println("No se puede publicar un post en el mismo dia");
-			return null;
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"No se puede publicar un post en el mismo dia");
 		} else {
 			Post post = postRepository.findById(id).get();
 			post.setStatus("PUBLICADO");

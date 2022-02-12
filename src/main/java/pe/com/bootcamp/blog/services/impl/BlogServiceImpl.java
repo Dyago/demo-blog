@@ -7,10 +7,12 @@ import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import pe.com.bootcamp.blog.entities.Author;
 import pe.com.bootcamp.blog.entities.Blog;
+import pe.com.bootcamp.blog.exceptions.BusinessException;
 import pe.com.bootcamp.blog.repositories.AuthorRepository;
 import pe.com.bootcamp.blog.repositories.BlogRepository;
 import pe.com.bootcamp.blog.services.BlogService;
@@ -31,28 +33,23 @@ public class BlogServiceImpl implements BlogService {
 
 	@Override
 	public Blog getById(Long id) {
-		return blogRepository.findById(id).orElse(null);
+		return blogRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,
+				"El codigo ingresado no se encuentra registrado"));
 	}
 
 	@Override
 	public Blog save(Blog blog) {
-		Author author = authorRepository.findById(blog.getAuthor().getId()).orElse(null);
-		if (author != null) {
-			if (author.getBlogs().size() > 2) {
-				System.err.println("El autor ya cuenta con 3 blogs registrados");
-				return null;
-			} else if (Period.between(
-					Instant.ofEpochMilli(author.getBirthDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate(),
-					LocalDate.now()).getYears() < 18) {
-				System.err.println("El autor es menor de edad");
-				return null;
-			} else {
-				return blogRepository.save(blog);
-			}
-		} else {
-			System.err.println("El codigo de autor ingresado no existe");
-			return null;
+		Author author = authorRepository.findById(blog.getAuthor().getId())
+				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,
+						"El codigo de autor ingresado no se encuentra registrado"));
+		if (author.getBlogs().size() > 2) {
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "El autor ya cuenta con 3 blogs registrados");
+		} else if (Period.between(
+				Instant.ofEpochMilli(author.getBirthDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate(),
+				LocalDate.now()).getYears() < 18) {
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "El autor es menor de edad");
 		}
+		return blogRepository.save(blog);
 	}
 
 }

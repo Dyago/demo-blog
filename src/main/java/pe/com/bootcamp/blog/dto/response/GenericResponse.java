@@ -5,11 +5,20 @@ import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public @Data class GenericResponse<T> implements Serializable {
+@Builder
+public class GenericResponse<T> implements Serializable {
 	
 	/**
 	 * 
@@ -18,9 +27,16 @@ public @Data class GenericResponse<T> implements Serializable {
 	private Metadata metadata;
 	private T data;
 	
-	static @Data class Metadata {
+	@Setter
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	@JsonInclude(value = JsonInclude.Include.NON_NULL)
+	@Builder
+	public static class Metadata {
 		
-		private String status;
+		private int status;
 		private String message;
 		
 	}
