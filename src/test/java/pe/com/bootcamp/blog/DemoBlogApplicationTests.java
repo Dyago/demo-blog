@@ -1,4 +1,4 @@
-package pe.com.bootcamp.demoblog;
+package pe.com.bootcamp.blog;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
